@@ -1,0 +1,28 @@
+# Build artifacts
+camera_control
+*.o
+*.so
+*.a
+
+# SDK binaries (too large for git)
+CameraSDK-*/bin/*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+__MACOSX/
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+
+# User-specific files
+*.local
+
