@@ -8,9 +8,6 @@ This application provides basic control of Insta360 cameras from a Raspberry Pi 
 
 ## 📖 Getting Started
 
-**New to Raspberry Pi setup?** Start here:
-- **[COMPLETE_SETUP_GUIDE.md](COMPLETE_SETUP_GUIDE.md)** - Complete step-by-step walkthrough from SD card flash to running the application
-
 **Quick setup?** Use the automated script:
 ```bash
 ./setup.sh
@@ -49,12 +46,6 @@ make
 3. Set up library path:
 ```bash
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/CameraSDK-20250418_161512-2.0.2-gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu/lib
-```
-
-Or add to `~/.bashrc`:
-```bash
-echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/insta360_control/CameraSDK-20250418_161512-2.0.2-gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu/lib' >> ~/.bashrc
-source ~/.bashrc
 ```
 
 ## Usage
