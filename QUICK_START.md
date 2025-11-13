@@ -78,34 +78,3 @@ If USB connection fails, try:
 ```bash
 sudo ./camera_control photo
 ```
-
-### Camera Not Found
-- Ensure camera is powered on
-- Check USB/WiFi connection
-- Try disconnecting and reconnecting
-
-## Example Workflow
-
-```bash
-# 1. Connect camera and check battery
-./camera_control battery
-
-# 2. Take some photos
-./camera_control photo ~/photos
-./camera_control photo ~/photos
-
-# 3. Shutdown camera when done
-./camera_control shutdown
-```
-
-## Interactive Mode Example
-
-```bash
-./camera_control interactive
-> battery
-> photo ~/photos
-> photo ~/photos
-> shutdown
-> quit
-```
-

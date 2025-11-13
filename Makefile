@@ -1,23 +1,23 @@
 # Makefile for Insta360 Camera Control Application
-# For Raspberry Pi Zero 2 W (ARM aarch64)
+# For Raspberry Pi (ARM aarch64)
 
 SDK_DIR = CameraSDK-20250418_161512-2.0.2-gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu
 INCLUDE_DIR = $(SDK_DIR)/include
 LIB_DIR = $(SDK_DIR)/lib
 SRC_DIR = .
 
-# Compiler settings
+# compiler settings
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall -Wextra -O2
 INCLUDES = -I$(INCLUDE_DIR)
 LIBS = -L$(LIB_DIR) -lCameraSDK
 LDFLAGS = -Wl,-rpath,$(LIB_DIR)
 
-# Target
+# target
 TARGET = camera_control
 SOURCE = camera_control.cpp
 
-# Default target
+# default target
 all: $(TARGET)
 
 $(TARGET): $(SOURCE)
@@ -35,7 +35,7 @@ $(TARGET): $(SOURCE)
 	@echo "Or install to system:"
 	@echo "  sudo make install"
 
-# Install target (optional - copies to /usr/local/bin)
+# install target (optional, copies to /usr/local/bin)
 install: $(TARGET)
 	@echo "Installing $(TARGET) to /usr/local/bin..."
 	sudo cp $(TARGET) /usr/local/bin/
@@ -43,12 +43,12 @@ install: $(TARGET)
 	sudo ldconfig
 	@echo "Installation complete."
 
-# Clean target
+# clean target
 clean:
 	rm -f $(TARGET)
 	@echo "Cleaned build files."
 
-# Help target
+# help target
 help:
 	@echo "Insta360 Camera Control - Build System"
 	@echo ""
@@ -65,4 +65,3 @@ help:
 	@echo "  ./$(TARGET) interactive"
 
 .PHONY: all install clean help
-

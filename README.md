@@ -6,6 +6,16 @@ This application provides basic control of Insta360 cameras from a Raspberry Pi 
 - Checking battery status
 - Interactive mode for multiple commands
 
+## 📖 Getting Started
+
+**New to Raspberry Pi setup?** Start here:
+- **[COMPLETE_SETUP_GUIDE.md](COMPLETE_SETUP_GUIDE.md)** - Complete step-by-step walkthrough from SD card flash to running the application
+
+**Quick setup?** Use the automated script:
+```bash
+./setup.sh
+```
+
 ## Prerequisites
 
 ### Hardware
@@ -82,28 +92,6 @@ In interactive mode, you can run multiple commands:
 - `battery` - Check battery status
 - `quit` or `exit` - Exit interactive mode
 
-### Examples
-
-```bash
-# Connect and take a photo
-./camera_control photo
-
-# Take photo and save to specific directory
-./camera_control photo /home/pi/photos
-
-# Check battery before taking photos
-./camera_control battery
-
-# Shutdown camera after use
-./camera_control shutdown
-
-# Interactive session
-./camera_control interactive
-> photo ./photos
-> battery
-> shutdown
-```
-
 ## Camera Connection
 
 ### USB Connection
@@ -122,9 +110,8 @@ The application will automatically discover cameras connected via USB or WiFi.
 
 ### "No camera found"
 - Ensure camera is powered on
-- Check USB connection (if using USB)
-- Check WiFi connection (if using WiFi)
-- Try running with `sudo` (may need USB permissions)
+- Check USB/WiFi connectio
+- Try running with `sudo`
 
 ### "Failed to open camera"
 - Camera may be in use by another application
@@ -169,4 +156,3 @@ camera_control photo
 ## License
 
 This application uses the Insta360 Camera SDK. Please refer to Insta360's SDK license terms.
-

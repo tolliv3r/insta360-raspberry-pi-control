@@ -149,7 +149,7 @@ public:
         const std::string photo_url = url.GetSingleOrigin();
         std::cout << "Photo captured! URL: " << photo_url << std::endl;
 
-        // Download the photo if save directory is provided
+        Download the photo if save directory is provided
         if (!save_directory.empty()) {
             std::string save_path = save_directory;
             if (save_path.back() != '/' && save_path.back() != '\\') {
