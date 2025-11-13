@@ -79,7 +79,7 @@ public:
                       << ", FW: " << device.fw_version << ")" << std::endl;
         }
 
-        // Use the first available camera
+        // use the first available camera
         const auto& selected_device = device_list[0];
         std::cout << "\nConnecting to: " << selected_device.camera_name 
                   << " (SN: " << selected_device.serial_number << ")..." << std::endl;
@@ -92,7 +92,7 @@ public:
             return false;
         }
 
-        // Sync time to camera
+        // sync time to camera
         time_t now = time(nullptr);
         std::tm tm{};
 #ifdef WIN32
@@ -125,7 +125,7 @@ public:
             return false;
         }
 
-        // Check if camera is still connected
+        // check if camera is still connected
         if (!camera_->IsConnected()) {
             std::cerr << "Error: Camera connection lost." << std::endl;
             is_connected_ = false;
@@ -149,14 +149,14 @@ public:
         const std::string photo_url = url.GetSingleOrigin();
         std::cout << "Photo captured! URL: " << photo_url << std::endl;
 
-        Download the photo if save directory is provided
+        // download the photo if save directory is provided
         if (!save_directory.empty()) {
             std::string save_path = save_directory;
             if (save_path.back() != '/' && save_path.back() != '\\') {
                 save_path += "/";
             }
             
-            // Check if directory exists
+            // check if directory exists
             if (!fileExists(save_path)) {
                 std::cerr << "Warning: Save directory does not exist: " << save_path << std::endl;
                 std::cerr << "Photo URL saved on camera: " << photo_url << std::endl;
@@ -278,7 +278,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    // For other commands, we need to connect first
+    // for other commands, we need to connect first
     if (!controller.discoverAndConnect()) {
         return 1;
     }
@@ -333,7 +333,7 @@ int main(int argc, char* argv[]) {
                 std::cout << "Unknown command. Try: photo, shutdown, battery, quit" << std::endl;
             }
             
-            // Check if still connected
+            // check if still connected
             if (!controller.isConnected()) {
                 std::cout << "Camera disconnected. Exiting..." << std::endl;
                 break;
