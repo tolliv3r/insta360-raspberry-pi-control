@@ -497,7 +497,7 @@ int main(int argc, char* argv[]) {
     }
     else if (command == "interactive") {
         std::cout << "\n=== Interactive Mode ===" << std::endl;
-        std::cout << "Commands: photo [dir], shutdown, battery, storage, video-mode, record-start, record-stop, quit" << std::endl;
+        std::cout << "Commands: photo [dir], shutdown, battery, storage, record-start, record-stop, quit" << std::endl;
         
         std::string line;
         while (true) {
