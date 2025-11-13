@@ -313,6 +313,95 @@ public:
         return true;
     }
 
+    bool setVideoMode() {
+        if (!is_connected_ || !camera_) {
+            std::cerr << "Error: Camera not connected." << std::endl;
+            return false;
+        }
+
+        std::cout << "Setting video mode..." << std::endl;
+        bool ret = camera_->SetVideoSubMode(ins_camera::SubVideoMode::VIDEO_NORMAL);
+        
+        if (!ret) {
+            std::cerr << "Error: Failed to set video mode." << std::endl;
+            return false;
+        }
+
+        std::cout << "Video mode set successfully." << std::endl;
+        return true;
+    }
+
+    bool startRecording() {
+        if (!is_connected_ || !camera_) {
+            std::cerr << "Error: Camera not connected." << std::endl;
+            return false;
+        }
+
+        // check if camera is still connected
+        if (!camera_->IsConnected()) {
+            std::cerr << "Error: Camera connection lost." << std::endl;
+            is_connected_ = false;
+            return false;
+        }
+
+        // set video mode first
+        std::cout << "Setting video mode..." << std::endl;
+        bool ret = camera_->SetVideoSubMode(ins_camera::SubVideoMode::VIDEO_NORMAL);
+        if (!ret) {
+            std::cerr << "Warning: Failed to set video mode, continuing anyway..." << std::endl;
+        }
+
+        // set video capture parameters (not sure yet exactly what to set the parameters to)
+        ins_camera::RecordParams record_params;
+        record_params.resolution = ins_camera::VideoResolution::RES_3840_3840P30;
+        record_params.bitrate = 1024 * 1024 * 10; // 10 Mbps default
+        ret = camera_->SetVideoCaptureParams(record_params, ins_camera::CameraFunctionMode::FUNCTION_MODE_NORMAL_VIDEO);
+        if (!ret) {
+            std::cerr << "Warning: Failed to set video capture params, continuing anyway..." << std::endl;
+        }
+
+        std::cout << "Starting recording..." << std::endl;
+        ret = camera_->StartRecording();
+        
+        if (!ret) {
+            std::cerr << "Error: Failed to start recording." << std::endl;
+            return false;
+        }
+
+        std::cout << "Recording started successfully!" << std::endl;
+        return true;
+    }
+
+    bool stopRecording() {
+        if (!is_connected_ || !camera_) {
+            std::cerr << "Error: Camera not connected." << std::endl;
+            return false;
+        }
+
+        std::cout << "Stopping recording..." << std::endl;
+        const auto url = camera_->StopRecording();
+        
+        if (url.Empty()) {
+            std::cerr << "Error: Failed to stop recording or no video was recorded." << std::endl;
+            return false;
+        }
+
+        std::cout << "Recording stopped successfully!" << std::endl;
+        
+        // display video URL(s)
+        if (url.IsSingleOrigin()) {
+            std::cout << "Video URL: " << url.GetSingleOrigin() << std::endl;
+        } else {
+            const auto& origins = url.OriginUrls();
+            std::cout << "Video URLs (" << origins.size() << "):" << std::endl;
+            for (size_t i = 0; i < origins.size(); i++) {
+                std::cout << "  [" << i << "] " << origins[i] << std::endl;
+            }
+        }
+        
+        return true;
+    }
+
     bool isConnected() const {
         return is_connected_ && camera_ && camera_->IsConnected();
     }
@@ -328,6 +417,9 @@ void printUsage(const char* program_name) {
     std::cout << "  shutdown             - Power off the camera" << std::endl;
     std::cout << "  battery              - Get battery status" << std::endl;
     std::cout << "  storage              - Get storage capacity status" << std::endl;
+    std::cout << "  video-mode           - Switch camera to video mode" << std::endl;
+    std::cout << "  record-start         - Start recording video (keeps connection open)" << std::endl;
+    std::cout << "  record-stop          - Stop recording video and display URL(s)" << std::endl;
     std::cout << "  interactive          - Interactive mode" << std::endl;
     std::cout << std::endl;
     std::cout << "Examples:" << std::endl;
@@ -351,7 +443,7 @@ int main(int argc, char* argv[]) {
         if (!controller.discoverAndConnect()) {
             return 1;
         }
-        std::cout << "Camera connected. Use 'photo', 'shutdown', 'battery', or 'storage' commands." << std::endl;
+        std::cout << "Camera connected. Use 'photo', 'shutdown', 'battery', 'storage', or video commands." << std::endl;
         return 0;
     }
 
@@ -381,9 +473,31 @@ int main(int argc, char* argv[]) {
         controller.disconnect();
         return success ? 0 : 1;
     }
+    else if (command == "video-mode") {
+        bool success = controller.setVideoMode();
+        controller.disconnect();
+        return success ? 0 : 1;
+    }
+    else if (command == "record-start") {
+        bool success = controller.startRecording();
+        if (success) {
+            std::cout << "\nRecording in progress. Keep this process running." << std::endl;
+            std::cout << "Use 'record-stop' command in another terminal or Ctrl+C to stop." << std::endl;
+            std::cout << "Press Enter to stop recording and exit..." << std::endl;
+            std::cin.get();
+            controller.stopRecording();
+        }
+        controller.disconnect();
+        return success ? 0 : 1;
+    }
+    else if (command == "record-stop") {
+        bool success = controller.stopRecording();
+        controller.disconnect();
+        return success ? 0 : 1;
+    }
     else if (command == "interactive") {
         std::cout << "\n=== Interactive Mode ===" << std::endl;
-        std::cout << "Commands: photo [dir], shutdown, battery, storage, quit" << std::endl;
+        std::cout << "Commands: photo [dir], shutdown, battery, storage, video-mode, record-start, record-stop, quit" << std::endl;
         
         std::string line;
         while (true) {
@@ -411,11 +525,20 @@ int main(int argc, char* argv[]) {
             else if (line == "storage") {
                 controller.getStorageStatus();
             }
+            else if (line == "video-mode") {
+                controller.setVideoMode();
+            }
+            else if (line == "record-start") {
+                controller.startRecording();
+            }
+            else if (line == "record-stop") {
+                controller.stopRecording();
+            }
             else if (line.empty()) {
                 continue;
             }
             else {
-                std::cout << "Unknown command. Try: photo, shutdown, battery, storage, quit" << std::endl;
+                std::cout << "Unknown command. Try: photo, shutdown, battery, storage, video-mode, record-start, record-stop, quit" << std::endl;
             }
             
             // check if still connected
