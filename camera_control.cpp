@@ -2,6 +2,7 @@
 #include <string>
 #include <chrono>
 #include <ctime>
+#include <iomanip>
 #include <camera/camera.h>
 #include <camera/device_discovery.h>
 #include <camera/photography_settings.h>
@@ -150,48 +151,48 @@ public:
         std::cout << "Photo captured! URL: " << photo_url << std::endl;
 
         // download the photo if save directory is provided
-        if (!save_directory.empty()) {
-            std::string save_path = save_directory;
-            if (save_path.back() != '/' && save_path.back() != '\\') {
-                save_path += "/";
-            }
+        // if (!save_directory.empty()) {
+        //     std::string save_path = save_directory;
+        //     if (save_path.back() != '/' && save_path.back() != '\\') {
+        //         save_path += "/";
+        //     }
             
-            // check if directory exists
-            if (!fileExists(save_path)) {
-                std::cerr << "Warning: Save directory does not exist: " << save_path << std::endl;
-                std::cerr << "Photo URL saved on camera: " << photo_url << std::endl;
-                return true;
-            }
+        //     // check if directory exists
+        //     if (!fileExists(save_path)) {
+        //         std::cerr << "Warning: Save directory does not exist: " << save_path << std::endl;
+        //         std::cerr << "Photo URL saved on camera: " << photo_url << std::endl;
+        //         return true;
+        //     }
 
-            std::string file_name = getFileName(photo_url);
-            if (file_name.empty()) {
-                file_name = "photo_" + getCurrentTime() + ".jpg";
-            }
+        //     std::string file_name = getFileName(photo_url);
+        //     if (file_name.empty()) {
+        //         file_name = "photo_" + getCurrentTime() + ".jpg";
+        //     }
             
-            std::string full_path = save_path + file_name;
-            std::cout << "Downloading photo to: " << full_path << std::endl;
+        //     std::string full_path = save_path + file_name;
+        //     std::cout << "Downloading photo to: " << full_path << std::endl;
 
-            int64_t last_progress = -1;
-            bool download_success = camera_->DownloadCameraFile(photo_url, full_path,
-                [&](int64_t current, int64_t total_size) {
-                    int64_t progress = total_size > 0 ? (current * 100 / total_size) : 0;
-                    if (progress != last_progress) {
-                        std::cout << "\rDownload progress: " << progress << "%" << std::flush;
-                        last_progress = progress;
-                    }
-                });
+        //     int64_t last_progress = -1;
+        //     bool download_success = camera_->DownloadCameraFile(photo_url, full_path,
+        //         [&](int64_t current, int64_t total_size) {
+        //             int64_t progress = total_size > 0 ? (current * 100 / total_size) : 0;
+        //             if (progress != last_progress) {
+        //                 std::cout << "\rDownload progress: " << progress << "%" << std::flush;
+        //                 last_progress = progress;
+        //             }
+        //         });
             
-            std::cout << std::endl;
+        //     std::cout << std::endl;
             
-            if (download_success) {
-                std::cout << "Photo successfully downloaded to: " << full_path << std::endl;
-                return true;
-            } else {
-                std::cerr << "Error: Failed to download photo." << std::endl;
-                std::cerr << "Photo URL on camera: " << photo_url << std::endl;
-                return false;
-            }
-        }
+        //     if (download_success) {
+        //         std::cout << "Photo successfully downloaded to: " << full_path << std::endl;
+        //         return true;
+        //     } else {
+        //         std::cerr << "Error: Failed to download photo." << std::endl;
+        //         std::cerr << "Photo URL on camera: " << photo_url << std::endl;
+        //         return false;
+        //     }
+        // }
 
         return true;
     }
@@ -237,6 +238,81 @@ public:
         return true;
     }
 
+    bool getStorageStatus() {
+        if (!is_connected_ || !camera_) {
+            std::cerr << "Error: Camera not connected." << std::endl;
+            return false;
+        }
+
+        ins_camera::StorageStatus status{};
+        bool ret = camera_->GetStorageState(status);
+        
+        if (!ret) {
+            std::cerr << "Error: Failed to get storage status." << std::endl;
+            return false;
+        }
+
+        // convert bytes to GB or MB
+        auto formatBytes = [](uint64_t bytes) -> std::string {
+            const uint64_t GB = 1024ULL * 1024ULL * 1024ULL;
+            const uint64_t MB = 1024ULL * 1024ULL;
+            
+            if (bytes >= GB) {
+                double gb = static_cast<double>(bytes) / GB;
+                char buffer[32];
+                snprintf(buffer, sizeof(buffer), "%.2f GB", gb);
+                return std::string(buffer);
+            } else if (bytes >= MB) {
+                double mb = static_cast<double>(bytes) / MB;
+                char buffer[32];
+                snprintf(buffer, sizeof(buffer), "%.2f MB", mb);
+                return std::string(buffer);
+            } else {
+                return std::to_string(bytes) + " bytes";
+            }
+        };
+
+        // convert CardState enum to readable text
+        std::string state_text;
+        switch (status.state) {
+            case ins_camera::STOR_CS_PASS:
+                state_text = "OK";
+                break;
+            case ins_camera::STOR_CS_NOCARD:
+                state_text = "No Card";
+                break;
+            case ins_camera::STOR_CS_NOSPACE:
+                state_text = "No Space";
+                break;
+            case ins_camera::STOR_CS_INVALID_FORMAT:
+                state_text = "Invalid Format";
+                break;
+            case ins_camera::STOR_CS_WPCARD:
+                state_text = "Write Protected";
+                break;
+            case ins_camera::STOR_CS_OTHER_ERROR:
+                state_text = "Other Error";
+                break;
+            default:
+                state_text = "Unknown";
+                break;
+        }
+
+        uint64_t used_space = status.total_space - status.free_space;
+        double used_percentage = status.total_space > 0 
+            ? (static_cast<double>(used_space) / status.total_space) * 100.0 
+            : 0.0;
+
+        std::cout << "Storage Status:" << std::endl;
+        std::cout << "  State: " << state_text << std::endl;
+        std::cout << "  Total Space: " << formatBytes(status.total_space) << std::endl;
+        std::cout << "  Free Space: " << formatBytes(status.free_space) << std::endl;
+        std::cout << "  Used Space: " << formatBytes(used_space) << " (" 
+                  << std::fixed << std::setprecision(1) << used_percentage << "%)" << std::endl;
+        
+        return true;
+    }
+
     bool isConnected() const {
         return is_connected_ && camera_ && camera_->IsConnected();
     }
@@ -251,6 +327,7 @@ void printUsage(const char* program_name) {
     std::cout << "  photo [save_dir]    - Take a photo (optionally save to directory)" << std::endl;
     std::cout << "  shutdown             - Power off the camera" << std::endl;
     std::cout << "  battery              - Get battery status" << std::endl;
+    std::cout << "  storage              - Get storage capacity status" << std::endl;
     std::cout << "  interactive          - Interactive mode" << std::endl;
     std::cout << std::endl;
     std::cout << "Examples:" << std::endl;
@@ -274,7 +351,7 @@ int main(int argc, char* argv[]) {
         if (!controller.discoverAndConnect()) {
             return 1;
         }
-        std::cout << "Camera connected. Use 'photo', 'shutdown', or 'battery' commands." << std::endl;
+        std::cout << "Camera connected. Use 'photo', 'shutdown', 'battery', or 'storage' commands." << std::endl;
         return 0;
     }
 
@@ -299,9 +376,14 @@ int main(int argc, char* argv[]) {
         controller.disconnect();
         return success ? 0 : 1;
     }
+    else if (command == "storage") {
+        bool success = controller.getStorageStatus();
+        controller.disconnect();
+        return success ? 0 : 1;
+    }
     else if (command == "interactive") {
         std::cout << "\n=== Interactive Mode ===" << std::endl;
-        std::cout << "Commands: photo [dir], shutdown, battery, quit" << std::endl;
+        std::cout << "Commands: photo [dir], shutdown, battery, storage, quit" << std::endl;
         
         std::string line;
         while (true) {
@@ -326,11 +408,14 @@ int main(int argc, char* argv[]) {
             else if (line == "battery") {
                 controller.getBatteryStatus();
             }
+            else if (line == "storage") {
+                controller.getStorageStatus();
+            }
             else if (line.empty()) {
                 continue;
             }
             else {
-                std::cout << "Unknown command. Try: photo, shutdown, battery, quit" << std::endl;
+                std::cout << "Unknown command. Try: photo, shutdown, battery, storage, quit" << std::endl;
             }
             
             // check if still connected
