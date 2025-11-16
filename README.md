@@ -8,8 +8,6 @@ This application provides basic control of Insta360 cameras from a Raspberry Pi 
 
 ## 📖 Getting Started
 
-## Prerequisites
-
 ### Hardware
 - Raspberry Pi (I've personally used a Pi Zero 2 W and a Pi 5)
 - Insta360 camera (I've used an X4, as far as I understand X3 and X5 should work. Unsure of other models)
