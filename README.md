@@ -1,24 +1,19 @@
-# Insta360 Camera Control for Raspberry Pi Zero 2 W
+# Insta360 Camera Control for Raspberry Pi
 
-This application provides basic control of Insta360 cameras from a Raspberry Pi Zero 2 W, including:
+This application provides basic control of Insta360 cameras from a Raspberry Pi (any model with a USB port should work), including:
 - Taking photos
-- Powering the camera on/off (shutdown)
+- Powering the camera on/off (WIP!)
 - Checking battery status
 - Interactive mode for multiple commands
 
 ## 📖 Getting Started
 
-**Quick setup?** Use the automated script:
-```bash
-./setup.sh
-```
-
 ## Prerequisites
 
 ### Hardware
-- Raspberry Pi Zero 2 W (or compatible Raspberry Pi)
-- Insta360 camera (X3, X4, X5, or compatible model)
-- USB cable or WiFi connection to camera
+- Raspberry Pi (I've personally used a Pi Zero 2 W and a Pi 5)
+- Insta360 camera (I've used an X4, as far as I understand X3 and X5 should work. Unsure of other models)
+- USB cable or WiFi connection to camera (WiFi WIP!)
 
 ### Software
 - Raspberry Pi OS (or compatible Linux distribution)
