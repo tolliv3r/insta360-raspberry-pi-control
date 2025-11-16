@@ -29,6 +29,12 @@ This will:
 # Take a photo and save to specific directory
 ./camera_control photo ~/photos
 
+# Start recording a video
+./camera_control record-start
+
+# Stop recording a video
+./camera_control record-stop
+
 # Check battery status
 ./camera_control battery
 
@@ -39,7 +45,7 @@ This will:
 ./camera_control interactive
 ```
 
-#### Using the Helper Script
+#### Using the Helper Script (WIP)
 ```bash
 # Use run.sh to automatically set library path
 ./run.sh photo
@@ -74,7 +80,7 @@ Or use the helper script:
 ```
 
 ### USB Permissions
-If USB connection fails, try:
+If USB connection fails, try running with sudo:
 ```bash
 sudo ./camera_control photo
 ```

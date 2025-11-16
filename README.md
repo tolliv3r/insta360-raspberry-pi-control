@@ -135,7 +135,7 @@ camera_control photo
 ## Notes
 
 - **Power On**: The SDK does not provide a software "power on" function. The camera must be manually powered on or connected via USB/WiFi.
-- **Power Off**: The `shutdown` command will power off the camera.
+- **Power Off**: The `shutdown` command will (should :/) power off the camera.
 - **Photo Download**: Photos are automatically downloaded after capture if a save directory is specified.
 - **Connection**: The camera must be powered on and connected (USB or WiFi) before running commands.
 

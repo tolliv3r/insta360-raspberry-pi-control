@@ -1,5 +1,6 @@
 # Makefile for Insta360 Camera Control Application
-# For Raspberry Pi (ARM aarch64)
+# for Raspberry Pi (ARM aarch64)
+# i've personally used a Pi Zero 2 W and a Pi 5, but anything with a USB port should work
 
 SDK_DIR = CameraSDK-20250418_161512-2.0.2-gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu
 INCLUDE_DIR = $(SDK_DIR)/include
@@ -35,7 +36,7 @@ $(TARGET): $(SOURCE)
 	@echo "Or install to system:"
 	@echo "  sudo make install"
 
-# install target (optional, copies to /usr/local/bin)
+# install target (optional, copies to /usr/local/bin for universal use)
 install: $(TARGET)
 	@echo "Installing $(TARGET) to /usr/local/bin..."
 	sudo cp $(TARGET) /usr/local/bin/
