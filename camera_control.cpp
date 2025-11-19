@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include <chrono>
 #include <ctime>
-#include <iomanip>
 #include <camera/camera.h>
 #include <camera/device_discovery.h>
 #include <camera/photography_settings.h>
@@ -80,7 +80,7 @@ public:
                       << ", FW: " << device.fw_version << ")" << std::endl;
         }
 
-        // use the first available camera
+        // Use the first available camera
         const auto& selected_device = device_list[0];
         std::cout << "\nConnecting to: " << selected_device.camera_name 
                   << " (SN: " << selected_device.serial_number << ")..." << std::endl;
@@ -93,7 +93,7 @@ public:
             return false;
         }
 
-        // sync time to camera
+        // Sync time to camera
         time_t now = time(nullptr);
         std::tm tm{};
 #ifdef WIN32
@@ -126,7 +126,7 @@ public:
             return false;
         }
 
-        // check if camera is still connected
+        // Check if camera is still connected
         if (!camera_->IsConnected()) {
             std::cerr << "Error: Camera connection lost." << std::endl;
             is_connected_ = false;
@@ -150,49 +150,49 @@ public:
         const std::string photo_url = url.GetSingleOrigin();
         std::cout << "Photo captured! URL: " << photo_url << std::endl;
 
-        // download the photo if save directory is provided
-        // if (!save_directory.empty()) {
-        //     std::string save_path = save_directory;
-        //     if (save_path.back() != '/' && save_path.back() != '\\') {
-        //         save_path += "/";
-        //     }
+        // Download the photo if save directory is provided
+        if (!save_directory.empty()) {
+            std::string save_path = save_directory;
+            if (save_path.back() != '/' && save_path.back() != '\\') {
+                save_path += "/";
+            }
             
-        //     // check if directory exists
-        //     if (!fileExists(save_path)) {
-        //         std::cerr << "Warning: Save directory does not exist: " << save_path << std::endl;
-        //         std::cerr << "Photo URL saved on camera: " << photo_url << std::endl;
-        //         return true;
-        //     }
+            // Check if directory exists
+            if (!fileExists(save_path)) {
+                std::cerr << "Warning: Save directory does not exist: " << save_path << std::endl;
+                std::cerr << "Photo URL saved on camera: " << photo_url << std::endl;
+                return true;
+            }
 
-        //     std::string file_name = getFileName(photo_url);
-        //     if (file_name.empty()) {
-        //         file_name = "photo_" + getCurrentTime() + ".jpg";
-        //     }
+            std::string file_name = getFileName(photo_url);
+            if (file_name.empty()) {
+                file_name = "photo_" + getCurrentTime() + ".jpg";
+            }
             
-        //     std::string full_path = save_path + file_name;
-        //     std::cout << "Downloading photo to: " << full_path << std::endl;
+            std::string full_path = save_path + file_name;
+            std::cout << "Downloading photo to: " << full_path << std::endl;
 
-        //     int64_t last_progress = -1;
-        //     bool download_success = camera_->DownloadCameraFile(photo_url, full_path,
-        //         [&](int64_t current, int64_t total_size) {
-        //             int64_t progress = total_size > 0 ? (current * 100 / total_size) : 0;
-        //             if (progress != last_progress) {
-        //                 std::cout << "\rDownload progress: " << progress << "%" << std::flush;
-        //                 last_progress = progress;
-        //             }
-        //         });
+            int64_t last_progress = -1;
+            bool download_success = camera_->DownloadCameraFile(photo_url, full_path,
+                [&](int64_t current, int64_t total_size) {
+                    int64_t progress = total_size > 0 ? (current * 100 / total_size) : 0;
+                    if (progress != last_progress) {
+                        std::cout << "\rDownload progress: " << progress << "%" << std::flush;
+                        last_progress = progress;
+                    }
+                });
             
-        //     std::cout << std::endl;
+            std::cout << std::endl;
             
-        //     if (download_success) {
-        //         std::cout << "Photo successfully downloaded to: " << full_path << std::endl;
-        //         return true;
-        //     } else {
-        //         std::cerr << "Error: Failed to download photo." << std::endl;
-        //         std::cerr << "Photo URL on camera: " << photo_url << std::endl;
-        //         return false;
-        //     }
-        // }
+            if (download_success) {
+                std::cout << "Photo successfully downloaded to: " << full_path << std::endl;
+                return true;
+            } else {
+                std::cerr << "Error: Failed to download photo." << std::endl;
+                std::cerr << "Photo URL on camera: " << photo_url << std::endl;
+                return false;
+            }
+        }
 
         return true;
     }
@@ -238,168 +238,97 @@ public:
         return true;
     }
 
-    bool getStorageStatus() {
+    bool copyStorage(const std::string& save_directory = "./") {
         if (!is_connected_ || !camera_) {
             std::cerr << "Error: Camera not connected." << std::endl;
             return false;
         }
 
-        ins_camera::StorageStatus status{};
-        bool ret = camera_->GetStorageState(status);
-        
-        if (!ret) {
-            std::cerr << "Error: Failed to get storage status." << std::endl;
-            return false;
-        }
-
-        // convert bytes to GB or MB
-        auto formatBytes = [](uint64_t bytes) -> std::string {
-            const uint64_t GB = 1024ULL * 1024ULL * 1024ULL;
-            const uint64_t MB = 1024ULL * 1024ULL;
-            
-            if (bytes >= GB) {
-                double gb = static_cast<double>(bytes) / GB;
-                char buffer[32];
-                snprintf(buffer, sizeof(buffer), "%.2f GB", gb);
-                return std::string(buffer);
-            } else if (bytes >= MB) {
-                double mb = static_cast<double>(bytes) / MB;
-                char buffer[32];
-                snprintf(buffer, sizeof(buffer), "%.2f MB", mb);
-                return std::string(buffer);
-            } else {
-                return std::to_string(bytes) + " bytes";
-            }
-        };
-
-        // convert CardState enum to readable text
-        std::string state_text;
-        switch (status.state) {
-            case ins_camera::STOR_CS_PASS:
-                state_text = "OK";
-                break;
-            case ins_camera::STOR_CS_NOCARD:
-                state_text = "No Card";
-                break;
-            case ins_camera::STOR_CS_NOSPACE:
-                state_text = "No Space";
-                break;
-            case ins_camera::STOR_CS_INVALID_FORMAT:
-                state_text = "Invalid Format";
-                break;
-            case ins_camera::STOR_CS_WPCARD:
-                state_text = "Write Protected";
-                break;
-            case ins_camera::STOR_CS_OTHER_ERROR:
-                state_text = "Other Error";
-                break;
-            default:
-                state_text = "Unknown";
-                break;
-        }
-
-        uint64_t used_space = status.total_space - status.free_space;
-        double used_percentage = status.total_space > 0 
-            ? (static_cast<double>(used_space) / status.total_space) * 100.0 
-            : 0.0;
-
-        std::cout << "Storage Status:" << std::endl;
-        std::cout << "  State: " << state_text << std::endl;
-        std::cout << "  Total Space: " << formatBytes(status.total_space) << std::endl;
-        std::cout << "  Free Space: " << formatBytes(status.free_space) << std::endl;
-        std::cout << "  Used Space: " << formatBytes(used_space) << " (" 
-                  << std::fixed << std::setprecision(1) << used_percentage << "%)" << std::endl;
-        
-        return true;
-    }
-
-    bool setVideoMode() {
-        if (!is_connected_ || !camera_) {
-            std::cerr << "Error: Camera not connected." << std::endl;
-            return false;
-        }
-
-        std::cout << "Setting video mode..." << std::endl;
-        bool ret = camera_->SetVideoSubMode(ins_camera::SubVideoMode::VIDEO_NORMAL);
-        
-        if (!ret) {
-            std::cerr << "Error: Failed to set video mode." << std::endl;
-            return false;
-        }
-
-        std::cout << "Video mode set successfully." << std::endl;
-        return true;
-    }
-
-    bool startRecording() {
-        if (!is_connected_ || !camera_) {
-            std::cerr << "Error: Camera not connected." << std::endl;
-            return false;
-        }
-
-        // check if camera is still connected
+        // Check if camera is still connected
         if (!camera_->IsConnected()) {
             std::cerr << "Error: Camera connection lost." << std::endl;
             is_connected_ = false;
             return false;
         }
 
-        // set video mode first
-        std::cout << "Setting video mode..." << std::endl;
-        bool ret = camera_->SetVideoSubMode(ins_camera::SubVideoMode::VIDEO_NORMAL);
-        if (!ret) {
-            std::cerr << "Warning: Failed to set video mode, continuing anyway..." << std::endl;
-        }
-
-        // set video capture parameters (not sure yet exactly what to set the parameters to)
-        ins_camera::RecordParams record_params;
-        record_params.resolution = ins_camera::VideoResolution::RES_3840_3840P30;
-        record_params.bitrate = 1024 * 1024 * 10; // 10 Mbps default
-        ret = camera_->SetVideoCaptureParams(record_params, ins_camera::CameraFunctionMode::FUNCTION_MODE_NORMAL_VIDEO);
-        if (!ret) {
-            std::cerr << "Warning: Failed to set video capture params, continuing anyway..." << std::endl;
-        }
-
-        std::cout << "Starting recording..." << std::endl;
-        ret = camera_->StartRecording();
+        std::cout << "Getting list of files from camera..." << std::endl;
+        std::vector<std::string> file_list = camera_->GetCameraFilesList();
         
-        if (!ret) {
-            std::cerr << "Error: Failed to start recording." << std::endl;
+        if (file_list.empty()) {
+            std::cout << "No files found on camera storage." << std::endl;
+            return true;
+        }
+
+        std::cout << "Found " << file_list.size() << " file(s) on camera." << std::endl;
+
+        // Prepare save directory
+        std::string save_path = save_directory;
+        if (save_path.back() != '/' && save_path.back() != '\\') {
+            save_path += "/";
+        }
+        
+        // Check if directory exists
+        if (!fileExists(save_path)) {
+            std::cerr << "Error: Save directory does not exist: " << save_path << std::endl;
             return false;
         }
 
-        std::cout << "Recording started successfully!" << std::endl;
-        return true;
-    }
+        int success_count = 0;
+        int fail_count = 0;
 
-    bool stopRecording() {
-        if (!is_connected_ || !camera_) {
-            std::cerr << "Error: Camera not connected." << std::endl;
-            return false;
-        }
+        // Download and delete each file
+        for (size_t i = 0; i < file_list.size(); i++) {
+            const std::string& file_url = file_list[i];
+            std::string file_name = getFileName(file_url);
+            
+            if (file_name.empty()) {
+                file_name = "file_" + getCurrentTime() + "_" + std::to_string(i);
+            }
+            
+            std::string full_path = save_path + file_name;
+            std::cout << "\n[" << (i + 1) << "/" << file_list.size() << "] Downloading: " << file_name << std::endl;
 
-        std::cout << "Stopping recording..." << std::endl;
-        const auto url = camera_->StopRecording();
-        
-        if (url.Empty()) {
-            std::cerr << "Error: Failed to stop recording or no video was recorded." << std::endl;
-            return false;
-        }
-
-        std::cout << "Recording stopped successfully!" << std::endl;
-        
-        // display video URL(s)
-        if (url.IsSingleOrigin()) {
-            std::cout << "Video URL: " << url.GetSingleOrigin() << std::endl;
-        } else {
-            const auto& origins = url.OriginUrls();
-            std::cout << "Video URLs (" << origins.size() << "):" << std::endl;
-            for (size_t i = 0; i < origins.size(); i++) {
-                std::cout << "  [" << i << "] " << origins[i] << std::endl;
+            int64_t last_progress = -1;
+            bool download_success = camera_->DownloadCameraFile(file_url, full_path,
+                [&](int64_t current, int64_t total_size) {
+                    int64_t progress = total_size > 0 ? (current * 100 / total_size) : 0;
+                    if (progress != last_progress) {
+                        std::cout << "\rDownload progress: " << progress << "%" << std::flush;
+                        last_progress = progress;
+                    }
+                });
+            
+            std::cout << std::endl;
+            
+            if (download_success) {
+                std::cout << "Successfully downloaded: " << full_path << std::endl;
+                
+                // Delete file from camera after successful download
+                std::cout << "Deleting from camera: " << file_url << std::endl;
+                bool delete_success = camera_->DeleteCameraFile(file_url);
+                
+                if (delete_success) {
+                    std::cout << "Successfully deleted from camera." << std::endl;
+                    success_count++;
+                } else {
+                    std::cerr << "Warning: Failed to delete file from camera: " << file_url << std::endl;
+                    std::cerr << "File was downloaded but remains on camera." << std::endl;
+                    success_count++; // Still count as success since download worked
+                }
+            } else {
+                std::cerr << "Error: Failed to download: " << file_url << std::endl;
+                fail_count++;
             }
         }
-        
-        return true;
+
+        std::cout << "\n=== Copy Summary ===" << std::endl;
+        std::cout << "Successfully copied: " << success_count << " file(s)" << std::endl;
+        if (fail_count > 0) {
+            std::cout << "Failed: " << fail_count << " file(s)" << std::endl;
+        }
+        std::cout << "Total: " << file_list.size() << " file(s)" << std::endl;
+
+        return fail_count == 0;
     }
 
     bool isConnected() const {
@@ -414,17 +343,16 @@ void printUsage(const char* program_name) {
     std::cout << "Commands:" << std::endl;
     std::cout << "  connect              - Connect to camera" << std::endl;
     std::cout << "  photo [save_dir]    - Take a photo (optionally save to directory)" << std::endl;
+    std::cout << "  copy-storage [dir]  - Copy all files from camera storage to directory (deletes from camera after copy)" << std::endl;
     std::cout << "  shutdown             - Power off the camera" << std::endl;
     std::cout << "  battery              - Get battery status" << std::endl;
-    std::cout << "  storage              - Get storage capacity status" << std::endl;
-    std::cout << "  video-mode           - Switch camera to video mode" << std::endl;
-    std::cout << "  record-start         - Start recording video (keeps connection open)" << std::endl;
-    std::cout << "  record-stop          - Stop recording video and display URL(s)" << std::endl;
     std::cout << "  interactive          - Interactive mode" << std::endl;
     std::cout << std::endl;
     std::cout << "Examples:" << std::endl;
     std::cout << "  " << program_name << " photo                    # Take photo" << std::endl;
     std::cout << "  " << program_name << " photo ./photos          # Take photo and save to ./photos" << std::endl;
+    std::cout << "  " << program_name << " copy-storage            # Copy all files to current directory" << std::endl;
+    std::cout << "  " << program_name << " copy-storage ~/backup    # Copy all files to ~/backup" << std::endl;
     std::cout << "  " << program_name << " shutdown                # Power off camera" << std::endl;
     std::cout << "  " << program_name << " interactive             # Interactive mode" << std::endl;
 }
@@ -443,11 +371,11 @@ int main(int argc, char* argv[]) {
         if (!controller.discoverAndConnect()) {
             return 1;
         }
-        std::cout << "Camera connected. Use 'photo', 'shutdown', 'battery', 'storage', or video commands." << std::endl;
+        std::cout << "Camera connected. Use 'photo', 'shutdown', or 'battery' commands." << std::endl;
         return 0;
     }
 
-    // for other commands, we need to connect first
+    // For other commands, we need to connect first
     if (!controller.discoverAndConnect()) {
         return 1;
     }
@@ -468,36 +396,15 @@ int main(int argc, char* argv[]) {
         controller.disconnect();
         return success ? 0 : 1;
     }
-    else if (command == "storage") {
-        bool success = controller.getStorageStatus();
-        controller.disconnect();
-        return success ? 0 : 1;
-    }
-    else if (command == "video-mode") {
-        bool success = controller.setVideoMode();
-        controller.disconnect();
-        return success ? 0 : 1;
-    }
-    else if (command == "record-start") {
-        bool success = controller.startRecording();
-        if (success) {
-            std::cout << "\nRecording in progress. Keep this process running." << std::endl;
-            std::cout << "Use 'record-stop' command in another terminal or Ctrl+C to stop." << std::endl;
-            std::cout << "Press Enter to stop recording and exit..." << std::endl;
-            std::cin.get();
-            controller.stopRecording();
-        }
-        controller.disconnect();
-        return success ? 0 : 1;
-    }
-    else if (command == "record-stop") {
-        bool success = controller.stopRecording();
+    else if (command == "copy-storage") {
+        std::string save_dir = (argc > 2) ? argv[2] : "./";
+        bool success = controller.copyStorage(save_dir);
         controller.disconnect();
         return success ? 0 : 1;
     }
     else if (command == "interactive") {
         std::cout << "\n=== Interactive Mode ===" << std::endl;
-        std::cout << "Commands: photo [dir], shutdown, battery, storage, record-start, record-stop, quit" << std::endl;
+        std::cout << "Commands: photo [dir], shutdown, battery, quit" << std::endl;
         
         std::string line;
         while (true) {
@@ -522,26 +429,14 @@ int main(int argc, char* argv[]) {
             else if (line == "battery") {
                 controller.getBatteryStatus();
             }
-            else if (line == "storage") {
-                controller.getStorageStatus();
-            }
-            else if (line == "video-mode") {
-                controller.setVideoMode();
-            }
-            else if (line == "record-start") {
-                controller.startRecording();
-            }
-            else if (line == "record-stop") {
-                controller.stopRecording();
-            }
             else if (line.empty()) {
                 continue;
             }
             else {
-                std::cout << "Unknown command. Try: photo, shutdown, battery, storage, video-mode, record-start, record-stop, quit" << std::endl;
+                std::cout << "Unknown command. Try: photo, shutdown, battery, quit" << std::endl;
             }
             
-            // check if still connected
+            // Check if still connected
             if (!controller.isConnected()) {
                 std::cout << "Camera disconnected. Exiting..." << std::endl;
                 break;

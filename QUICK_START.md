@@ -29,12 +29,6 @@ This will:
 # Take a photo and save to specific directory
 ./camera_control photo ~/photos
 
-# Start recording a video
-./camera_control record-start
-
-# Stop recording a video
-./camera_control record-stop
-
 # Check battery status
 ./camera_control battery
 
@@ -45,7 +39,7 @@ This will:
 ./camera_control interactive
 ```
 
-#### Using the Helper Script (WIP)
+#### Using the Helper Script
 ```bash
 # Use run.sh to automatically set library path
 ./run.sh photo
@@ -80,7 +74,38 @@ Or use the helper script:
 ```
 
 ### USB Permissions
-If USB connection fails, try running with sudo:
+If USB connection fails, try:
 ```bash
 sudo ./camera_control photo
 ```
+
+### Camera Not Found
+- Ensure camera is powered on
+- Check USB/WiFi connection
+- Try disconnecting and reconnecting
+
+## Example Workflow
+
+```bash
+# 1. Connect camera and check battery
+./camera_control battery
+
+# 2. Take some photos
+./camera_control photo ~/photos
+./camera_control photo ~/photos
+
+# 3. Shutdown camera when done
+./camera_control shutdown
+```
+
+## Interactive Mode Example
+
+```bash
+./camera_control interactive
+> battery
+> photo ~/photos
+> photo ~/photos
+> shutdown
+> quit
+```
+
