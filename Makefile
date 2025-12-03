@@ -1,24 +1,23 @@
 # Makefile for Insta360 Camera Control Application
-# for Raspberry Pi (ARM aarch64)
-# i've personally used a Pi Zero 2 W and a Pi 5, but anything with a USB port should work
+# For Raspberry Pi Zero 2 W (ARM aarch64)
 
 SDK_DIR = CameraSDK-20250418_161512-2.0.2-gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu
 INCLUDE_DIR = $(SDK_DIR)/include
 LIB_DIR = $(SDK_DIR)/lib
 SRC_DIR = .
 
-# compiler settings
+# Compiler settings
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall -Wextra -O2
 INCLUDES = -I$(INCLUDE_DIR)
 LIBS = -L$(LIB_DIR) -lCameraSDK
 LDFLAGS = -Wl,-rpath,$(LIB_DIR)
 
-# target
+# Target
 TARGET = camera_control
 SOURCE = camera_control.cpp
 
-# default target
+# Default target
 all: $(TARGET)
 
 $(TARGET): $(SOURCE)
@@ -36,7 +35,7 @@ $(TARGET): $(SOURCE)
 	@echo "Or install to system:"
 	@echo "  sudo make install"
 
-# install target (optional, copies to /usr/local/bin for universal use)
+# Install target (optional - copies to /usr/local/bin)
 install: $(TARGET)
 	@echo "Installing $(TARGET) to /usr/local/bin..."
 	sudo cp $(TARGET) /usr/local/bin/
@@ -44,12 +43,12 @@ install: $(TARGET)
 	sudo ldconfig
 	@echo "Installation complete."
 
-# clean target
+# Clean target
 clean:
 	rm -f $(TARGET)
 	@echo "Cleaned build files."
 
-# help target
+# Help target
 help:
 	@echo "Insta360 Camera Control - Build System"
 	@echo ""
@@ -66,3 +65,4 @@ help:
 	@echo "  ./$(TARGET) interactive"
 
 .PHONY: all install clean help
+
